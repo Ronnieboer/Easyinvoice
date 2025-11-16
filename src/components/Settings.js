@@ -1,9 +1,12 @@
-import React, { useRef } from 'react';
-import { Download, Upload, Trash2, Database } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { Download, Upload, Trash2, Database, Save } from 'lucide-react';
 import { loadSampleData, clearAllData, exportData, importData } from '../utils/sampleData';
+import { getTranslation } from '../utils/translations';
 
-function Settings() {
+function Settings({ language, appSettings, setAppSettings }) {
   const fileInputRef = useRef(null);
+  const [editedSettings, setEditedSettings] = useState(appSettings);
+  const t = (key) => getTranslation(language, key);
 
   const handleImport = (e) => {
     const file = e.target.files[0];
@@ -12,32 +15,154 @@ function Settings() {
     }
   };
 
+  const handleSaveSettings = () => {
+    setAppSettings(editedSettings);
+    alert(t('settingsSaved') || 'Settings saved successfully!');
+  };
+
+  const handleLogoUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setEditedSettings({ ...editedSettings, companyLogo: event.target.result });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   return (
     <div>
       <div className="page-header">
-        <h2>Settings</h2>
-        <p>Manage your data and application settings</p>
+        <h2>{t('settingsTitle')}</h2>
+        <p>{t('settingsSubtitle')}</p>
       </div>
 
       <div className="card">
-        <h3>Data Management</h3>
+        <h3>{t('companySettings')}</h3>
+        <p style={{ color: '#718096', marginBottom: '1.5rem' }}>
+          {t('companySettingsDesc') || 'Configure your company information that will appear on invoices and quotes.'}
+        </p>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+          <div className="form-group">
+            <label>{t('companyName')}</label>
+            <input
+              type="text"
+              value={editedSettings.companyName}
+              onChange={(e) => setEditedSettings({ ...editedSettings, companyName: e.target.value })}
+            />
+          </div>
+
+          <div className="form-group">
+            <label>{t('companyEmail')}</label>
+            <input
+              type="email"
+              value={editedSettings.companyEmail}
+              onChange={(e) => setEditedSettings({ ...editedSettings, companyEmail: e.target.value })}
+            />
+          </div>
+
+          <div className="form-group">
+            <label>{t('companyAddress')}</label>
+            <input
+              type="text"
+              value={editedSettings.companyAddress}
+              onChange={(e) => setEditedSettings({ ...editedSettings, companyAddress: e.target.value })}
+            />
+          </div>
+
+          <div className="form-group">
+            <label>{t('companyPhone')}</label>
+            <input
+              type="tel"
+              value={editedSettings.companyPhone}
+              onChange={(e) => setEditedSettings({ ...editedSettings, companyPhone: e.target.value })}
+            />
+          </div>
+
+          <div className="form-group">
+            <label>{t('companyCity')}</label>
+            <input
+              type="text"
+              value={editedSettings.companyCity}
+              onChange={(e) => setEditedSettings({ ...editedSettings, companyCity: e.target.value })}
+            />
+          </div>
+
+          <div className="form-group">
+            <label>{t('companyCVR')}</label>
+            <input
+              type="text"
+              value={editedSettings.companyCVR}
+              onChange={(e) => setEditedSettings({ ...editedSettings, companyCVR: e.target.value })}
+            />
+          </div>
+
+          <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+            <label>{t('companyCountry')}</label>
+            <input
+              type="text"
+              value={editedSettings.companyCountry}
+              onChange={(e) => setEditedSettings({ ...editedSettings, companyCountry: e.target.value })}
+            />
+          </div>
+        </div>
+
+        <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+          <label>Company Logo</label>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleLogoUpload}
+            style={{ display: 'block', marginTop: '0.5rem' }}
+          />
+          {editedSettings.companyLogo && (
+            <div style={{ marginTop: '1rem' }}>
+              <img src={editedSettings.companyLogo} alt="Company Logo" style={{ maxWidth: '200px', maxHeight: '100px' }} />
+            </div>
+          )}
+        </div>
+
+        <div className="form-group">
+          <label>{t('paymentTerms')}</label>
+          <p style={{ color: '#718096', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
+            {t('paymentTermsDesc')}
+          </p>
+          <textarea
+            value={editedSettings.paymentTerms}
+            onChange={(e) => setEditedSettings({ ...editedSettings, paymentTerms: e.target.value })}
+            style={{ minHeight: '120px' }}
+            placeholder="Payment due within 30 days.&#10;Bank transfer preferred.&#10;Thank you for your business!"
+          />
+        </div>
+
+        <button onClick={handleSaveSettings} className="btn btn-primary">
+          <Save size={20} />
+          Save Company Settings
+        </button>
+      </div>
+
+      <div className="card">
+        <h3>{t('dataManagement')}</h3>
         
         <div style={{ marginBottom: '2rem' }}>
-          <h4 style={{ color: '#4a5568', marginBottom: '1rem' }}>Backup & Restore</h4>
+          <h4 style={{ color: '#4a5568', marginBottom: '1rem' }}>{t('backupRestore')}</h4>
           <p style={{ color: '#718096', marginBottom: '1rem' }}>
-            Export your data to a JSON file for backup or import data from a previous backup.
+            {t('backupRestoreDesc')}
           </p>
           <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
             <button onClick={exportData} className="btn btn-primary">
               <Download size={20} />
-              Export Data
+              {t('exportData')}
             </button>
             <button 
               onClick={() => fileInputRef.current?.click()} 
               className="btn btn-secondary"
             >
               <Upload size={20} />
-              Import Data
+              {t('importData')}
             </button>
             <input
               ref={fileInputRef}
@@ -50,30 +175,30 @@ function Settings() {
         </div>
 
         <div style={{ marginBottom: '2rem', paddingTop: '2rem', borderTop: '1px solid #e2e8f0' }}>
-          <h4 style={{ color: '#4a5568', marginBottom: '1rem' }}>Sample Data</h4>
+          <h4 style={{ color: '#4a5568', marginBottom: '1rem' }}>{t('sampleData')}</h4>
           <p style={{ color: '#718096', marginBottom: '1rem' }}>
-            Load sample data to test the application. This will replace your current data.
+            {t('sampleDataDesc')}
           </p>
           <button onClick={loadSampleData} className="btn btn-secondary">
             <Database size={20} />
-            Load Sample Data
+            {t('loadSampleData')}
           </button>
         </div>
 
         <div style={{ paddingTop: '2rem', borderTop: '1px solid #e2e8f0' }}>
-          <h4 style={{ color: '#e53e3e', marginBottom: '1rem' }}>Danger Zone</h4>
+          <h4 style={{ color: '#e53e3e', marginBottom: '1rem' }}>{t('dangerZone')}</h4>
           <p style={{ color: '#718096', marginBottom: '1rem' }}>
-            Permanently delete all data. This action cannot be undone.
+            {t('dangerZoneDesc')}
           </p>
           <button onClick={clearAllData} className="btn btn-danger">
             <Trash2 size={20} />
-            Clear All Data
+            {t('clearAllData')}
           </button>
         </div>
       </div>
 
       <div className="card">
-        <h3>About</h3>
+        <h3>{t('about')}</h3>
         <div style={{ color: '#4a5568' }}>
           <p style={{ marginBottom: '0.5rem' }}><strong>Invoice Manager</strong></p>
           <p style={{ marginBottom: '0.5rem' }}>Version: 1.0.0</p>
